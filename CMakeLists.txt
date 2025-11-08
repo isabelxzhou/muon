@@ -149,6 +149,7 @@ add_subdirectory(${CEF_ROOT}/tests/cefclient)
 add_subdirectory(${CEF_ROOT}/tests/cefsimple)
 add_subdirectory(${CEF_ROOT}/tests/gtest)
 add_subdirectory(${CEF_ROOT}/tests/ceftests)
+add_subdirectory(muon)
 
 # Allow includes relative to the current source directory.
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
