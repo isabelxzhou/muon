@@ -9,24 +9,24 @@
 #include "include/cef_command_line.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/wrapper/cef_library_loader.h"
-#include "simple_app.h"
-#include "simple_handler.h"
+#include "muon_app.h"
+#include "muon_handler.h"
 
 // Receives notifications from the application.
-@interface SimpleAppDelegate : NSObject <NSApplicationDelegate>
+@interface MuonAppDelegate : NSObject <NSApplicationDelegate>
 
 - (void)createApplication:(id)object;
 - (void)tryToTerminateApplication:(NSApplication*)app;
 @end
 
 // Provide the CefAppProtocol implementation required by CEF.
-@interface SimpleApplication : NSApplication <CefAppProtocol> {
+@interface MuonApplication : NSApplication <CefAppProtocol> {
  @private
   BOOL handlingSendEvent_;
 }
 @end
 
-@implementation SimpleApplication
+@implementation MuonApplication
 - (BOOL)isHandlingSendEvent {
   return handlingSendEvent_;
 }
@@ -78,14 +78,14 @@
 // The standard |-applicationShouldTerminate:| is not supported, and code paths
 // leading to it must be redirected.
 - (void)terminate:(id)sender {
-  SimpleAppDelegate* delegate =
-      static_cast<SimpleAppDelegate*>([NSApp delegate]);
+  MuonAppDelegate* delegate =
+      static_cast<MuonAppDelegate*>([NSApp delegate]);
   [delegate tryToTerminateApplication:self];
   // Return, don't exit. The application is responsible for exiting on its own.
 }
 @end
 
-@implementation SimpleAppDelegate
+@implementation MuonAppDelegate
 
 // Create the application on the UI thread.
 - (void)createApplication:(id)object {
@@ -98,7 +98,7 @@
 }
 
 - (void)tryToTerminateApplication:(NSApplication*)app {
-  SimpleHandler* handler = SimpleHandler::GetInstance();
+  MuonHandler* handler = MuonHandler::GetInstance();
   if (handler && !handler->IsClosing()) {
     handler->CloseAllBrowsers(false);
   }
@@ -113,7 +113,7 @@
 // already running.
 - (BOOL)applicationShouldHandleReopen:(NSApplication*)theApplication
                     hasVisibleWindows:(BOOL)flag {
-  SimpleHandler* handler = SimpleHandler::GetInstance();
+  MuonHandler* handler = MuonHandler::GetInstance();
   if (handler && !handler->IsClosing()) {
     handler->ShowMainWindow();
   }
@@ -142,13 +142,13 @@ int main(int argc, char* argv[]) {
   CefMainArgs main_args(argc, argv);
 
   @autoreleasepool {
-    // Initialize the SimpleApplication instance.
-    [SimpleApplication sharedApplication];
+    // Initialize the MuonApplication instance.
+    [MuonApplication sharedApplication];
 
     // If there was an invocation to NSApp prior to this method, then the NSApp
-    // will not be a SimpleApplication, but will instead be an NSApplication.
+    // will not be a MuonApplication, but will instead be an NSApplication.
     // This is undesirable and we must enforce that this doesn't happen.
-    CHECK([NSApp isKindOfClass:[SimpleApplication class]]);
+    CHECK([NSApp isKindOfClass:[MuonApplication class]]);
 
     // Parse command-line arguments for use in this method.
     CefRefPtr<CefCommandLine> command_line =
@@ -165,10 +165,10 @@ int main(int argc, char* argv[]) {
     settings.no_sandbox = true;
 #endif
 
-    // SimpleApp implements application-level callbacks for the browser process.
+    // MuonApp implements application-level callbacks for the browser process.
     // It will create the first browser instance in OnContextInitialized() after
     // CEF has initialized.
-    CefRefPtr<SimpleApp> app(new SimpleApp);
+    CefRefPtr<MuonApp> app(new MuonApp);
 
     // Initialize the CEF browser process. May return false if initialization
     // fails or if early exit is desired (for example, due to process singleton
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the application delegate.
-    SimpleAppDelegate* delegate = [[SimpleAppDelegate alloc] init];
+    MuonAppDelegate* delegate = [[MuonAppDelegate alloc] init];
     // Set as the delegate for application events.
     NSApp.delegate = delegate;
 

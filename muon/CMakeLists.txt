@@ -7,24 +7,27 @@
 #
 
 # muon sources.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(MUON_SRCS
-  simple_app.cc
-  simple_app.h
-  simple_handler.cc
-  simple_handler.h
+  muon_window_delegate.h
+  muon_window_delegate.cc
+  muon_app.cc
+  muon_app.h
+  muon_handler.cc
+  muon_handler.h
   )
 set(MUON_SRCS_LINUX
   muon_linux.cc
-  simple_handler_linux.cc
+  muon_handler_linux.cc
   )
 set(MUON_SRCS_MAC
   muon_mac.mm
-  simple_handler_mac.mm
+  muon_handler_mac.mm
   )
 set(MUON_SRCS_WINDOWS
   muon_win.cc
   resource.h
-  simple_handler_win.cc
+  muon_handler_win.cc
   )
 APPEND_PLATFORM_SOURCES(MUON_SRCS)
 source_group(muon FILES ${MUON_SRCS})

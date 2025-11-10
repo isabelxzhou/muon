@@ -45,6 +45,7 @@ Thumbs.db
 # CEF build directory
 /build
 **/build
+**/build-xcode
 # CEF download directory
 /third_party/cef/
 # clang-format downloads
