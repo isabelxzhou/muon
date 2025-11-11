@@ -133,7 +133,7 @@ execute_process(
   RESULT_VARIABLE EXECUTE_RV
   )
 if(NOT EXECUTE_RV STREQUAL "0")
-  message(FATAL_ERROR "Execution failed with unexpected result: ${EXECUTE_RV}")
+  message(WARNING "Failed to download clang-format from Google Storage (result: ${EXECUTE_RV}). Continuing build - clang-format may be available via system package manager.")
 endif()
 
 

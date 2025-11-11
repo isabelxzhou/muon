@@ -46,6 +46,10 @@ void MuonHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
                                   const CefString& title) {
   CEF_REQUIRE_UI_THREAD();
 
+  if (title_update_callback_) {
+    title_update_callback_(browser, title);
+  }
+
   if (auto browser_view = CefBrowserView::GetForBrowser(browser)) {
     // Set the title of the window using the Views framework.
     CefRefPtr<CefWindow> window = browser_view->GetWindow();

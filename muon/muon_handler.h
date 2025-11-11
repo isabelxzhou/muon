@@ -5,6 +5,7 @@
 #ifndef CEF_TESTS_MUON_MUON_HANDLER_H_
 #define CEF_TESTS_MUON_MUON_HANDLER_H_
 
+#include <functional>
 #include <list>
 
 #include "include/cef_client.h"
@@ -48,6 +49,11 @@ class MuonHandler : public CefClient,
 
   bool IsClosing() const { return is_closing_; }
 
+  // Set callback for title updates
+  void SetTitleUpdateCallback(std::function<void(CefRefPtr<CefBrowser>, const CefString&)> callback) {
+    title_update_callback_ = callback;
+  }
+
  private:
   // Platform-specific implementation.
   void PlatformTitleChange(CefRefPtr<CefBrowser> browser,
@@ -59,6 +65,7 @@ class MuonHandler : public CefClient,
   BrowserList browser_list_;
 
   bool is_closing_ = false;
+  std::function<void(CefRefPtr<CefBrowser>, const CefString&)> title_update_callback_;
 
   // Include the default reference counting implementation.
   IMPLEMENT_REFCOUNTING(MuonHandler);

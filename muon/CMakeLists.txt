@@ -16,6 +16,7 @@ set(MUON_SRCS
   muon_handler.cc
   muon_handler.h
   project_panel.h
+  project_panel.cc
   )
 set(MUON_SRCS_LINUX
   muon_linux.cc
@@ -27,7 +28,7 @@ set(MUON_SRCS_MAC
   )
 set(MUON_SRCS_WINDOWS
   muon_win.cc
-  resource.h
+  win/resource.h
   muon_handler_win.cc
   )
 APPEND_PLATFORM_SOURCES(MUON_SRCS)

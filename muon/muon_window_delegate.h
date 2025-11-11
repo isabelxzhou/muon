@@ -6,6 +6,9 @@
 #include "include/views/cef_window.h"
 #include "include/views/cef_window_delegate.h"
 #include "muon_handler.h"
+
+class ProjectPane;
+
 class MuonWindowDelegate : public CefWindowDelegate
 {
 public:
@@ -32,6 +35,7 @@ private:
   CefRefPtr<CefBrowserView> browser_view;
   CefRefPtr<CefBrowserView> browser_view_2;
   cef_show_state_t initial_show_state;
+  ProjectPane* project_pane_;
   IMPLEMENT_REFCOUNTING(MuonWindowDelegate);
   DISALLOW_COPY_AND_ASSIGN(MuonWindowDelegate);
 };
