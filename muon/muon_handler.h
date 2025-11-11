@@ -30,6 +30,9 @@ class MuonHandler : public CefClient,
   void OnTitleChange(CefRefPtr<CefBrowser> browser,
                      const CefString& title) override;
 
+  void OnAddressChange(CefRefPtr<CefBrowser> browser,
+                               CefRefPtr<CefFrame> frame,
+                       const CefString& url) override;
   // CefLifeSpanHandler methods:
   void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
   bool DoClose(CefRefPtr<CefBrowser> browser) override;

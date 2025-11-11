@@ -17,6 +17,8 @@ set(MUON_SRCS
   muon_handler.h
   project_panel.h
   project_panel.cc
+  framed_browser_view.h
+  framed_browser_view.cc
   )
 set(MUON_SRCS_LINUX
   muon_linux.cc

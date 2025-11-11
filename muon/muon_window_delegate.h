@@ -1,3 +1,4 @@
+#include "framed_browser_view.h"
 #include "include/base/cef_macros.h"
 #include "include/cef_base.h"
 #include "include/internal/cef_ptr.h"
@@ -6,7 +7,6 @@
 #include "include/views/cef_window.h"
 #include "include/views/cef_window_delegate.h"
 #include "muon_handler.h"
-#include "project_panel.h"
 
 class MuonWindowDelegate : public CefWindowDelegate
 {
@@ -31,8 +31,8 @@ public:
 
 private:
   CefRefPtr<MuonHandler> handler;
-  CefRefPtr<CefBrowserView> browser_view;
-  CefRefPtr<CefBrowserView> browser_view_2;
+  CefRefPtr<FramedBrowserView> framed_browser_view;
+  CefRefPtr<FramedBrowserView> framed_browser_view_2;
   cef_show_state_t initial_show_state;
   IMPLEMENT_REFCOUNTING(MuonWindowDelegate);
   DISALLOW_COPY_AND_ASSIGN(MuonWindowDelegate);

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+#include "framed_browser_view.h"
 #include "include/base/cef_callback.h"
 #include "include/cef_app.h"
 #include "include/cef_parser.h"
@@ -43,7 +44,7 @@ MuonHandler* MuonHandler::GetInstance() {
 }
 
 void MuonHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
-                                  const CefString& title) {
+                                const CefString& title) {
   CEF_REQUIRE_UI_THREAD();
 
   if (title_update_callback_) {
@@ -61,13 +62,25 @@ void MuonHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
     PlatformTitleChange(browser, title);
   }
 }
+void MuonHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefFrame> frame,
+                                  const CefString& url) {
+  CEF_REQUIRE_UI_THREAD();
+
+  // Only reflect top-level navigations.
+  if (!frame || !frame->IsMain())
+    return;
+
+  if (auto framed = FramedBrowserView::GetForBrowser(browser)) {
+    framed->SetURL(url);
+  }
+}
 
 void MuonHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   CEF_REQUIRE_UI_THREAD();
 
   // Sanity-check the configured runtime style.
-  CHECK_EQ(CEF_RUNTIME_STYLE_ALLOY, 
-           browser->GetHost()->GetRuntimeStyle());
+  CHECK_EQ(CEF_RUNTIME_STYLE_ALLOY, browser->GetHost()->GetRuntimeStyle());
 
   // Add to the list of existing browsers.
   browser_list_.push_back(browser);
@@ -108,10 +121,10 @@ void MuonHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
 }
 
 void MuonHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
-                                CefRefPtr<CefFrame> frame,
-                                ErrorCode errorCode,
-                                const CefString& errorText,
-                                const CefString& failedUrl) {
+                              CefRefPtr<CefFrame> frame,
+                              ErrorCode errorCode,
+                              const CefString& errorText,
+                              const CefString& failedUrl) {
   CEF_REQUIRE_UI_THREAD();
 
   // Don't display an error for downloaded files.

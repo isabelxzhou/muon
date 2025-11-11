@@ -1,9 +1,9 @@
 #pragma once
 
+#include <vector>
+
 #include "include/base/cef_macros.h"
 #include "include/cef_base.h"
-#include "include/internal/cef_types.h"
-#include "include/internal/cef_types_wrappers.h"
 #include "include/views/cef_box_layout.h"
 #include "include/views/cef_panel.h"
 #include "include/views/cef_view.h"
@@ -17,14 +17,15 @@ class ProjectPanel : public CefPanelDelegate {
   // Fixed 50px width; flexible height.
   CefSize GetPreferredSize(CefRefPtr<CefView>) override;
 
-  // Re-apply colors when the system/app theme changes.
+  // Cannot set bg colors without using this hook
   void OnThemeChanged(CefRefPtr<CefView> view) override;
 
  private:
+  void BuildPanels(CefRefPtr<CefBoxLayout> layout);
   void ApplyColors();
 
-  cef_color_t root_color_, top_color_, bottom_color_;
-  CefRefPtr<CefPanel> root_, top_, bottom_;
+  CefRefPtr<CefPanel> root_;
+  std::vector<CefRefPtr<CefPanel>> panels_;
 
   IMPLEMENT_REFCOUNTING(ProjectPanel);
   DISALLOW_COPY_AND_ASSIGN(ProjectPanel);

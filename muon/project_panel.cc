@@ -1,37 +1,41 @@
 #include "project_panel.h"
-#include "include/views/cef_button.h"
-#include "include/views/cef_button_delegate.h"
+
+#include "include/internal/cef_types_wrappers.h"  // for CefColorSetARGB
+
 namespace {
-class NullButtonDelegate : public CefButtonDelegate {
- public:
-  NullButtonDelegate() = default;
-  void OnButtonPressed(CefRefPtr<CefButton> /*button*/) override {}
-  void OnButtonStateChanged(CefRefPtr<CefButton> /*button*/) override {}
-  IMPLEMENT_REFCOUNTING(NullButtonDelegate);
+
+static constexpr cef_color_t kRainbow[10] = {
+    CefColorSetARGB(0xFF, 0xE5, 0x39, 0x35),  // red
+    CefColorSetARGB(0xFF, 0xFB, 0x8C, 0x00),  // orange
+    CefColorSetARGB(0xFF, 0xFF, 0xEB, 0x3B),  // yellow
+    CefColorSetARGB(0xFF, 0x43, 0xA0, 0x47),  // green
+    CefColorSetARGB(0xFF, 0x00, 0x96, 0x88),  // teal
+    CefColorSetARGB(0xFF, 0x00, 0xBC, 0xD4),  // cyan
+    CefColorSetARGB(0xFF, 0x1E, 0x88, 0xE5),  // blue
+    CefColorSetARGB(0xFF, 0x3F, 0x51, 0xB5),  // indigo
+    CefColorSetARGB(0xFF, 0x8E, 0x24, 0xAA),  // violet
+    CefColorSetARGB(0xFF, 0xD8, 0x1B, 0x60),  // magenta
 };
+
+inline cef_color_t RainbowColor(int i) {
+  return kRainbow[i % 10];
+}
+
 }  // namespace
 
-ProjectPanel::ProjectPanel()
-    : root_color_(CefColorSetARGB(0xFF, 0x33, 0x33, 0x33)),
-      top_color_(CefColorSetARGB(0xFF, 0x42, 0x85, 0xF4)),
-      bottom_color_(CefColorSetARGB(0xFF, 0xEA, 0x43, 0x35)) {
+ProjectPanel::ProjectPanel() {
+  // Root container.
   root_ = CefPanel::CreatePanel(this);
 
   CefBoxLayoutSettings s;
   s.horizontal = false;
   s.cross_axis_alignment = CEF_AXIS_ALIGNMENT_STRETCH;
+
   auto layout = root_->SetToBoxLayout(s);
 
-  top_ = CefPanel::CreatePanel(nullptr);
-  bottom_ = CefPanel::CreatePanel(nullptr);
-
-  root_->AddChildView(top_);
-  root_->AddChildView(bottom_);
-  root_->SetSize(CefSize(50, 100));
-  layout->SetFlexForView(top_, 1);
-  layout->SetFlexForView(bottom_, 1);
-
-  ApplyColors();  // initial paint
+  BuildPanels(layout);
+  root_->SetSize(CefSize(20, 20));
+  ApplyColors();
 }
 
 CefSize ProjectPanel::GetPreferredSize(CefRefPtr<CefView> /*view*/) {
@@ -42,8 +46,18 @@ void ProjectPanel::OnThemeChanged(CefRefPtr<CefView> /*view*/) {
   ApplyColors();
 }
 
+void ProjectPanel::BuildPanels(CefRefPtr<CefBoxLayout> layout) {
+  panels_.reserve(10);
+  for (int i = 0; i < 10; ++i) {
+    auto panel = CefPanel::CreatePanel(nullptr);
+    panels_.push_back(panel);
+    root_->AddChildView(panel);
+    layout->SetFlexForView(panel, 1);  
+  }
+}
+
 void ProjectPanel::ApplyColors() {
-  root_->SetBackgroundColor(root_color_);
-  top_->SetBackgroundColor(top_color_);
-  bottom_->SetBackgroundColor(bottom_color_);
+  for (int i = 0; i < static_cast<int>(panels_.size()); ++i) {
+    panels_[i]->SetBackgroundColor(RainbowColor(i));
+  }
 }

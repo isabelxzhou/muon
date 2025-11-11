@@ -1,4 +1,5 @@
 #include "muon_window_delegate.h"
+#include "framed_browser_view.h"
 #include "include/cef_browser.h"
 #include "include/internal/cef_ptr.h"
 #include "include/internal/cef_types.h"
@@ -89,36 +90,12 @@ class URLTextFieldDelegate : public CefTextfieldDelegate {
   IMPLEMENT_REFCOUNTING(URLTextFieldDelegate);
 };
 
-class MuonBrowserViewDelegate : public CefBrowserViewDelegate {
- public:
-  explicit MuonBrowserViewDelegate() {}
-
-  bool OnPopupBrowserViewCreated(CefRefPtr<CefBrowserView> browser_view,
-                                 CefRefPtr<CefBrowserView> popup_browser_view,
-                                 bool is_devtools) override {
-    return false;
-  }
-
-  cef_runtime_style_t GetBrowserRuntimeStyle() override {
-    return CEF_RUNTIME_STYLE_ALLOY;
-  }
-
-  IMPLEMENT_REFCOUNTING(MuonBrowserViewDelegate);
-  DISALLOW_COPY_AND_ASSIGN(MuonBrowserViewDelegate);
-};
-
-// todo: global request context object
-auto default_browser(CefRefPtr<MuonHandler> handler, std::string url) {
-  CefBrowserSettings settings;
-  return CefBrowserView::CreateBrowserView(
-      handler, url, settings, nullptr, nullptr, new MuonBrowserViewDelegate());
-}
 
 MuonWindowDelegate::MuonWindowDelegate(CefRefPtr<MuonHandler> handler,
                                        cef_show_state_t initial_show_state)
     : handler(handler), initial_show_state(initial_show_state) {
-  browser_view = default_browser(handler, "https://www.flytre.com");
-  browser_view_2 = default_browser(handler, "https://www.isotau.com");
+  framed_browser_view = new FramedBrowserView(handler, "https://www.flytre.com");
+  framed_browser_view_2 = new FramedBrowserView(handler, "https://www.isotau.com");
 }
 void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   // 1) Window: horizontal (sidebar + content)
@@ -128,13 +105,12 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
 
   auto project_pane = new ProjectPanel();                
   auto pane_root = project_pane->root();
-  pane_root->SetSize(CefSize(100,100));
   window->AddChildView(pane_root);
   window->GetLayout()->AsBoxLayout()->SetFlexForView(pane_root, 1); 
 
   CefRefPtr<CefPanel> content = CefPanel::CreatePanel(nullptr);
   window->AddChildView(content);
-  window->GetLayout()->AsBoxLayout()->SetFlexForView(content, 20);   
+  window->GetLayout()->AsBoxLayout()->SetFlexForView(content, 30);   
 
   CefBoxLayoutSettings content_layout;
   content_layout.horizontal = false;
@@ -147,11 +123,11 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   url_panel->SetToBoxLayout(url_layout);
 
   CefRefPtr<CefTextfield> url_field =
-      CefTextfield::CreateTextfield(new URLTextFieldDelegate(browser_view));
+      CefTextfield::CreateTextfield(new URLTextFieldDelegate(framed_browser_view->browser_view()));
   url_field->SetPlaceholderText("Enter URL...");
 
   CefRefPtr<CefLabelButton> navigate_button = CefLabelButton::CreateLabelButton(
-      new NavigateButtonDelegate(url_field, browser_view), "→");
+      new NavigateButtonDelegate(url_field, framed_browser_view->browser_view()), "→");
 
   url_panel->AddChildView(url_field);
   url_panel->AddChildView(navigate_button);
@@ -163,13 +139,17 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   auto minibuffer =
       CefLabelButton::CreateLabelButton(new NullButtonDelegate(), "Minibuffer");
 
-  content->AddChildView(browser_view);
-  content->AddChildView(browser_view_2);
+  auto framed_root = framed_browser_view->root();
+  auto framed_root_2 = framed_browser_view_2->root();
+  framed_browser_view_2->SetWindowNumber(2);
+
+  content->AddChildView(framed_root);
+  content->AddChildView(framed_root_2);
   content->AddChildView(url_panel);
   content->AddChildView(minibuffer);
 
-  content->GetLayout()->AsBoxLayout()->SetFlexForView(browser_view,   1);
-  content->GetLayout()->AsBoxLayout()->SetFlexForView(browser_view_2, 1);
+  content->GetLayout()->AsBoxLayout()->SetFlexForView(framed_root,   1);
+  content->GetLayout()->AsBoxLayout()->SetFlexForView(framed_root_2, 1);
   content->GetLayout()->AsBoxLayout()->SetFlexForView(minibuffer, 0);
   content->GetLayout()->AsBoxLayout()->SetFlexForView(url_panel, 0);
   if (initial_show_state != CEF_SHOW_STATE_HIDDEN)
@@ -178,14 +158,14 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
 
 
 void MuonWindowDelegate::OnWindowDestroyed(CefRefPtr<CefWindow> /*window*/) {
-  browser_view = nullptr;
+  framed_browser_view = nullptr;
 }
 
 bool MuonWindowDelegate::CanClose(CefRefPtr<CefWindow> /*window*/) {
-  CefRefPtr<CefBrowser> browser =
-      browser_view ? browser_view->GetBrowser() : nullptr;
-  if (browser)
-    return browser->GetHost()->TryCloseBrowser();
+  // CefRefPtr<CefBrowser> browser =
+  //   framed_browser_view ? framed_browser_view->browser_view()->GetBrowser() : nullptr;
+  // if (browser)
+  //   return browser->GetHost()->TryCloseBrowser();
   return true;
 }
 
