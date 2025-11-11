@@ -27,6 +27,7 @@ ProjectPanel::ProjectPanel()
 
   root_->AddChildView(top_);
   root_->AddChildView(bottom_);
+  root_->SetSize(CefSize(50, 100));
   layout->SetFlexForView(top_, 1);
   layout->SetFlexForView(bottom_, 1);
 

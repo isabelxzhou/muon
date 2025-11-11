@@ -128,6 +128,7 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
 
   auto project_pane = new ProjectPanel();                
   auto pane_root = project_pane->root();
+  pane_root->SetSize(CefSize(100,100));
   window->AddChildView(pane_root);
   window->GetLayout()->AsBoxLayout()->SetFlexForView(pane_root, 1); 
 
@@ -156,7 +157,7 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   url_panel->AddChildView(navigate_button);
 
   //setting the flex to this to 1 hides the side panel idk why
-  url_panel->GetLayout()->AsBoxLayout()->SetFlexForView(url_field, 0);
+  url_panel->GetLayout()->AsBoxLayout()->SetFlexForView(url_field, 1);
   url_panel->GetLayout()->AsBoxLayout()->SetFlexForView(navigate_button, 0);
 
   auto minibuffer =
