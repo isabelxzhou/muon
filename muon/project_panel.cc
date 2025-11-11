@@ -1,52 +1,48 @@
 #include "project_panel.h"
-
-#include "include/views/cef_box_layout.h"
-#include "include/views/cef_label_button.h"
-#include "include/views/cef_panel.h"
+#include "include/views/cef_button.h"
 #include "include/views/cef_button_delegate.h"
-
-class TabButtonDelegate : public CefButtonDelegate {
+namespace {
+class NullButtonDelegate : public CefButtonDelegate {
  public:
-  TabButtonDelegate(CefRefPtr<CefBrowserView> browser_view)
-      : browser_view_(browser_view) {}
-
-  void OnButtonPressed(CefRefPtr<CefButton> button) override {
-    if (browser_view_) {
-      browser_view_->RequestFocus();
-    }
-  }
-
-  void OnButtonStateChanged(CefRefPtr<CefButton> button) override {
-  }
-
- private:
-  CefRefPtr<CefBrowserView> browser_view_;
-  IMPLEMENT_REFCOUNTING(TabButtonDelegate);
+  NullButtonDelegate() = default;
+  void OnButtonPressed(CefRefPtr<CefButton> /*button*/) override {}
+  void OnButtonStateChanged(CefRefPtr<CefButton> /*button*/) override {}
+  IMPLEMENT_REFCOUNTING(NullButtonDelegate);
 };
+}  // namespace
 
-ProjectPane::ProjectPane() {
-  panel_ = CefPanel::CreatePanel(nullptr);
-  
-  CefBoxLayoutSettings layout_settings;
-  layout_settings.horizontal = false;
-  panel_->SetToBoxLayout(layout_settings);
+ProjectPanel::ProjectPanel()
+    : root_color_(CefColorSetARGB(0xFF, 0x33, 0x33, 0x33)),
+      top_color_(CefColorSetARGB(0xFF, 0x42, 0x85, 0xF4)),
+      bottom_color_(CefColorSetARGB(0xFF, 0xEA, 0x43, 0x35)) {
+  root_ = CefPanel::CreatePanel(this);
+
+  CefBoxLayoutSettings s;
+  s.horizontal = false;
+  s.cross_axis_alignment = CEF_AXIS_ALIGNMENT_STRETCH;
+  auto layout = root_->SetToBoxLayout(s);
+
+  top_ = CefPanel::CreatePanel(nullptr);
+  bottom_ = CefPanel::CreatePanel(nullptr);
+
+  root_->AddChildView(top_);
+  root_->AddChildView(bottom_);
+  layout->SetFlexForView(top_, 1);
+  layout->SetFlexForView(bottom_, 1);
+
+  ApplyColors();  // initial paint
 }
 
-void ProjectPane::AddTab(CefRefPtr<CefBrowserView> browser_view, const std::string& initial_title) {
-  if (!browser_view) return;
-  
-  CefRefPtr<CefLabelButton> tab_button = CefLabelButton::CreateLabelButton(
-      new TabButtonDelegate(browser_view), initial_title);
-  
-  tab_buttons_[browser_view] = tab_button;
-  panel_->AddChildView(tab_button);
-  panel_->GetLayout()->AsBoxLayout()->SetFlexForView(tab_button, 0);
+CefSize ProjectPanel::GetPreferredSize(CefRefPtr<CefView> /*view*/) {
+  return CefSize(50, 0);
 }
 
-void ProjectPane::UpdateTabTitle(CefRefPtr<CefBrowserView> browser_view, const std::string& title) {
-  auto it = tab_buttons_.find(browser_view);
-  if (it != tab_buttons_.end()) {
-    it->second->SetText(title);
-  }
+void ProjectPanel::OnThemeChanged(CefRefPtr<CefView> /*view*/) {
+  ApplyColors();
 }
 
+void ProjectPanel::ApplyColors() {
+  root_->SetBackgroundColor(root_color_);
+  top_->SetBackgroundColor(top_color_);
+  bottom_->SetBackgroundColor(bottom_color_);
+}

@@ -1,32 +1,31 @@
-#ifndef MUON_PROJECT_PANEL_H_
-#define MUON_PROJECT_PANEL_H_
+#pragma once
 
-#include <map>
-#include <string>
-#include "include/internal/cef_ptr.h"
-#include "include/views/cef_browser_view.h"
-#include "include/views/cef_label_button.h"
+#include "include/base/cef_macros.h"
+#include "include/cef_base.h"
+#include "include/internal/cef_types.h"
+#include "include/internal/cef_types_wrappers.h"
+#include "include/views/cef_box_layout.h"
 #include "include/views/cef_panel.h"
 #include "include/views/cef_view.h"
 
-// ProjectPane creates a sidebar panel for the muon application.
-class ProjectPane {
+class ProjectPanel : public CefPanelDelegate {
  public:
-  ProjectPane();
-  
-  // Returns the root view of the project pane.
-  CefRefPtr<CefView> root() { return panel_; }
-  
-  // Add a tab for a browser view
-  void AddTab(CefRefPtr<CefBrowserView> browser_view, const std::string& initial_title);
-  
-  // Update the title of a tab
-  void UpdateTabTitle(CefRefPtr<CefBrowserView> browser_view, const std::string& title);
+  ProjectPanel();
+
+  CefRefPtr<CefPanel> root() const { return root_; }
+
+  // Fixed 50px width; flexible height.
+  CefSize GetPreferredSize(CefRefPtr<CefView>) override;
+
+  // Re-apply colors when the system/app theme changes.
+  void OnThemeChanged(CefRefPtr<CefView> view) override;
 
  private:
-  CefRefPtr<CefPanel> panel_;
-  std::map<CefRefPtr<CefBrowserView>, CefRefPtr<CefLabelButton>> tab_buttons_;
+  void ApplyColors();
+
+  cef_color_t root_color_, top_color_, bottom_color_;
+  CefRefPtr<CefPanel> root_, top_, bottom_;
+
+  IMPLEMENT_REFCOUNTING(ProjectPanel);
+  DISALLOW_COPY_AND_ASSIGN(ProjectPanel);
 };
-
-#endif  // MUON_PROJECT_PANEL_H_
-
