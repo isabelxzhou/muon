@@ -24,9 +24,13 @@ public:
 
 
   cef_runtime_style_t GetWindowRuntimeStyle() override;
+
+  CefSize GetPreferredSize(CefRefPtr<CefView> /*view*/) override ;
+
 private:
   CefRefPtr<MuonHandler> handler;
   CefRefPtr<CefBrowserView> browser_view;
+  CefRefPtr<CefBrowserView> browser_view_2;
   cef_show_state_t initial_show_state;
   IMPLEMENT_REFCOUNTING(MuonWindowDelegate);
   DISALLOW_COPY_AND_ASSIGN(MuonWindowDelegate);

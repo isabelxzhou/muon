@@ -15,6 +15,7 @@ set(MUON_SRCS
   muon_app.h
   muon_handler.cc
   muon_handler.h
+  project_panel.h
   )
 set(MUON_SRCS_LINUX
   muon_linux.cc
