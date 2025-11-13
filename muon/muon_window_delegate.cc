@@ -1,7 +1,9 @@
 #include "muon_window_delegate.h"
+#include <algorithm>
 #include <vector>
 #include "framed_browser_view.h"
 #include "include/cef_browser.h"
+#include "include/cef_parser.h"
 #include "include/internal/cef_ptr.h"
 #include "include/internal/cef_types.h"
 #include "include/internal/cef_types_runtime.h"
@@ -86,15 +88,13 @@ class URLTextFieldDelegate : public CefTextfieldDelegate {
                     (event.native_key_code == 49);
 
     if (is_enter || is_space) {
-      std::string url = textfield->GetText().ToString();
-      if (!url.empty()) {
-        if (url.find("://") == std::string::npos) {
-          url = "https://" + url;
-        }
+      const std::string input = textfield->GetText().ToString();
+      std::string target_url = BuildNavigationUrl(TrimWhitespace(input));
+      if (!target_url.empty()) {
         CefRefPtr<CefBrowser> browser =
             target_browser_producer_()->GetBrowser();
         if (browser) {
-          browser->GetMainFrame()->LoadURL(url);
+          browser->GetMainFrame()->LoadURL(target_url);
         }
       }
       return true;
@@ -103,9 +103,46 @@ class URLTextFieldDelegate : public CefTextfieldDelegate {
   }
 
  private:
+  static std::string TrimWhitespace(const std::string& input) {
+    const char* whitespace = " \t\n\r";
+    const size_t start = input.find_first_not_of(whitespace);
+    if (start == std::string::npos) {
+      return "";
+    }
+    const size_t end = input.find_last_not_of(whitespace);
+    return input.substr(start, end - start + 1);
+  }
+
+  static std::string BuildNavigationUrl(const std::string& input) {
+    if (input.empty()) {
+      return "";
+    }
+
+    const bool has_scheme = input.find("://") != std::string::npos;
+
+    std::string lowered = input;
+    std::transform(lowered.begin(), lowered.end(), lowered.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+    const bool looks_like_domain =
+        (input.find('.') != std::string::npos) ||
+        (lowered.rfind("localhost", 0) == 0);
+
+    if (has_scheme || looks_like_domain) {
+      if (has_scheme) {
+        return input;
+      }
+      return "https://" + input;
+    }
+
+    CefString encoded = CefURIEncode(input, true);
+    return "https://www.google.com/search?q=" + encoded.ToString();
+  }
+
   std::function<CefRefPtr<CefBrowserView>()> target_browser_producer_;
   IMPLEMENT_REFCOUNTING(URLTextFieldDelegate);
 };
+
 
 class ProjectButtonDelegate : public CefButtonDelegate {
  public:
