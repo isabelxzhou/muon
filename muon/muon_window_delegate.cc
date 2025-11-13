@@ -19,6 +19,7 @@
 #include "project_list_panel.h"
 #include "project_panel.h"
 
+//todo: fix bug where muon must be force quit if we switch projects!
 class NullButtonDelegate : public CefButtonDelegate {
  public:
   NullButtonDelegate() = default;
@@ -32,18 +33,21 @@ class NullButtonDelegate : public CefButtonDelegate {
 
 class NavigateButtonDelegate : public CefButtonDelegate {
  public:
-  NavigateButtonDelegate(CefRefPtr<CefTextfield> url_field,
-                         CefRefPtr<CefBrowserView> target_browser)
-      : url_field_(url_field), target_browser_(target_browser) {}
+  NavigateButtonDelegate(
+      CefRefPtr<CefTextfield> url_field,
+      std::function<CefRefPtr<CefBrowserView>()> target_browser_producer)
+      : url_field_(url_field),
+        target_browser_producer_(target_browser_producer) {}
 
   void OnButtonPressed(CefRefPtr<CefButton> button) override {
-    if (url_field_ && target_browser_) {
+    if (url_field_) {
       std::string url = url_field_->GetText().ToString();
       if (!url.empty()) {
         if (url.find("://") == std::string::npos) {
           url = "https://" + url;
         }
-        CefRefPtr<CefBrowser> browser = target_browser_->GetBrowser();
+        CefRefPtr<CefBrowser> browser =
+            target_browser_producer_()->GetBrowser();
         if (browser) {
           browser->GetMainFrame()->LoadURL(url);
         }
@@ -55,14 +59,15 @@ class NavigateButtonDelegate : public CefButtonDelegate {
 
  private:
   CefRefPtr<CefTextfield> url_field_;
-  CefRefPtr<CefBrowserView> target_browser_;
+  std::function<CefRefPtr<CefBrowserView>()> target_browser_producer_;
   IMPLEMENT_REFCOUNTING(NavigateButtonDelegate);
 };
 
 class URLTextFieldDelegate : public CefTextfieldDelegate {
  public:
-  URLTextFieldDelegate(CefRefPtr<CefBrowserView> target_browser)
-      : target_browser_(target_browser) {}
+  URLTextFieldDelegate(
+      std::function<CefRefPtr<CefBrowserView>()> target_browser_producer)
+      : target_browser_producer_(std::move(target_browser_producer)) {}
 
   bool OnKeyEvent(CefRefPtr<CefTextfield> textfield,
                   const CefKeyEvent& event) override {
@@ -77,7 +82,8 @@ class URLTextFieldDelegate : public CefTextfieldDelegate {
         if (url.find("://") == std::string::npos) {
           url = "https://" + url;
         }
-        CefRefPtr<CefBrowser> browser = target_browser_->GetBrowser();
+        CefRefPtr<CefBrowser> browser =
+            target_browser_producer_()->GetBrowser();
         if (browser) {
           browser->GetMainFrame()->LoadURL(url);
         }
@@ -88,19 +94,21 @@ class URLTextFieldDelegate : public CefTextfieldDelegate {
   }
 
  private:
-  CefRefPtr<CefBrowserView> target_browser_;
+  std::function<CefRefPtr<CefBrowserView>()> target_browser_producer_;
   IMPLEMENT_REFCOUNTING(URLTextFieldDelegate);
 };
 
 class ProjectButtonDelegate : public CefButtonDelegate {
  public:
-  ProjectButtonDelegate(int project_id) : project_id_(project_id) {}
+  ProjectButtonDelegate(MuonWindowDelegate* owner, int project_id)
+      : owner_(owner), project_id_(project_id) {}
 
   void OnButtonPressed(CefRefPtr<CefButton> button) override {
-    project_id_++;
+    owner_->SwitchProject(project_id_);
   }
 
  private:
+  MuonWindowDelegate* owner_;
   int project_id_;
 
   IMPLEMENT_REFCOUNTING(ProjectButtonDelegate);
@@ -122,18 +130,18 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   window->SetToBoxLayout(win_layout);
 
   auto project_pane = new ProjectListPanel(
-      [](int id) { return new ProjectButtonDelegate(id); });
+      [this](int id) { return new ProjectButtonDelegate(this, id); });
   auto pane_root = project_pane->root();
   window->AddChildView(pane_root);
   window->GetLayout()->AsBoxLayout()->SetFlexForView(pane_root, 1);
 
-  CefRefPtr<CefPanel> content = CefPanel::CreatePanel(nullptr);
-  window->AddChildView(content);
-  window->GetLayout()->AsBoxLayout()->SetFlexForView(content, 20);
+  content_panel = CefPanel::CreatePanel(nullptr);
+  window->AddChildView(content_panel);
+  window->GetLayout()->AsBoxLayout()->SetFlexForView(content_panel, 20);
 
   CefBoxLayoutSettings content_layout;
   content_layout.horizontal = false;
-  content->SetToBoxLayout(content_layout);
+  content_panel->SetToBoxLayout(content_layout);
 
   CefRefPtr<CefPanel> url_panel = CefPanel::CreatePanel(nullptr);
   CefBoxLayoutSettings url_layout;
@@ -141,16 +149,18 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   url_layout.between_child_spacing = 8;
   url_panel->SetToBoxLayout(url_layout);
 
-  projects[active_project_idx]->ActivateAndGetRoot();
-
   CefRefPtr<CefTextfield> url_field =
-      CefTextfield::CreateTextfield(new URLTextFieldDelegate(
-          projects[active_project_idx]->top()->browser_view()));
+      CefTextfield::CreateTextfield(new URLTextFieldDelegate([this]() {
+        return projects[active_project_idx]->top()->browser_view();
+      }));
   url_field->SetPlaceholderText("Enter URL...");
 
   CefRefPtr<CefLabelButton> navigate_button = CefLabelButton::CreateLabelButton(
       new NavigateButtonDelegate(
-          url_field, projects[active_project_idx]->top()->browser_view()),
+          url_field,
+          [this]() {
+            return projects[active_project_idx]->top()->browser_view();
+          }),
       "→");
 
   url_panel->AddChildView(url_field);
@@ -163,14 +173,15 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   auto minibuffer =
       CefLabelButton::CreateLabelButton(new NullButtonDelegate(), "Minibuffer");
 
-  content->AddChildView(projects[active_project_idx]->ActivateAndGetRoot());
-  content->AddChildView(url_panel);
-  content->AddChildView(minibuffer);
+  content_panel->AddChildView(
+      projects[active_project_idx]->ActivateAndGetRoot());
+  content_panel->AddChildView(url_panel);
+  content_panel->AddChildView(minibuffer);
 
-  content->GetLayout()->AsBoxLayout()->SetFlexForView(
+  content_panel->GetLayout()->AsBoxLayout()->SetFlexForView(
       projects[active_project_idx]->ActivateAndGetRoot(), 1);
-  content->GetLayout()->AsBoxLayout()->SetFlexForView(minibuffer, 0);
-  content->GetLayout()->AsBoxLayout()->SetFlexForView(url_panel, 0);
+  content_panel->GetLayout()->AsBoxLayout()->SetFlexForView(minibuffer, 0);
+  content_panel->GetLayout()->AsBoxLayout()->SetFlexForView(url_panel, 0);
   if (initial_show_state != CEF_SHOW_STATE_HIDDEN)
     window->Show();
 }
@@ -194,4 +205,18 @@ cef_show_state_t MuonWindowDelegate::GetInitialShowState(
 
 cef_runtime_style_t MuonWindowDelegate::GetWindowRuntimeStyle() {
   return CEF_RUNTIME_STYLE_ALLOY;
+}
+void MuonWindowDelegate::SwitchProject(int id) {
+  CefRefPtr<CefPanel> content = content_panel;
+
+  content->RemoveChildView(projects[active_project_idx]->ActivateAndGetRoot());
+
+  active_project_idx = id;
+
+  auto new_root = projects[active_project_idx]->ActivateAndGetRoot();
+  content->AddChildViewAt(new_root, 0);
+
+  content_panel->GetLayout()->AsBoxLayout()->SetFlexForView(
+      new_root, 1);
+  content->Layout();
 }
