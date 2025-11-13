@@ -51,39 +51,48 @@ bool MuonHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
                                  bool* is_keyboard_shortcut) {
   CEF_REQUIRE_UI_THREAD();
   
-  if (window_delegate_ && event.type == KEYEVENT_KEYDOWN) {
-    // Use Control key - more reliable and less likely to conflict
-    bool has_control = (event.modifiers & EVENTFLAG_CONTROL_DOWN) != 0;
-    
-    if (has_control) {
-      int key_code = event.windows_key_code;
-      int native_key_code = event.native_key_code;
-      
-      // Check for number keys 0-9 using key codes (not character, as modifiers change characters)
-      int project_num = -1;
-      bool is_number = false;
-      
-      // Windows key codes for 0-9
-      if (key_code >= 48 && key_code <= 57) {
-        project_num = key_code - 48;
-        is_number = true;
-      }
-      // macOS native key codes for 0-9 (top row)
-      else if (native_key_code >= 29 && native_key_code <= 38) {
-        project_num = native_key_code - 29;
-        is_number = true;
-      }
-      // Also check function keys F1-F10 as backup
-      else if (key_code >= 112 && key_code <= 121) {
-        project_num = key_code - 112;
-        is_number = true;
-      }
-      
-      if (is_number && project_num >= 0 && project_num < 10) {
-        window_delegate_->SwitchProject(project_num);
-        return true;
-      }
+  if (!window_delegate_) {
+    return false;
+  }
+
+  if (event.type != KEYEVENT_KEYDOWN &&
+      event.type != KEYEVENT_RAWKEYDOWN) {
+    return false;
+  }
+
+  const int key_code = event.windows_key_code;
+  const int native_key_code = event.native_key_code;
+  const bool has_command = (event.modifiers & EVENTFLAG_COMMAND_DOWN) != 0;
+  const char character = event.character;
+
+  auto extract_project_index = [](int win_code, int native_code) -> int {
+    if (win_code >= 48 && win_code <= 57) {
+      return win_code - 48;
     }
+    if (native_code >= 29 && native_code <= 38) {
+      return native_code - 29;
+    }
+    if (win_code >= 112 && win_code <= 121) {
+      return win_code - 112;
+    }
+    return -1;
+  };
+
+  if (waiting_for_project_number_) {
+    int project_num = extract_project_index(key_code, native_key_code);
+    waiting_for_project_number_ = false;
+    if (project_num >= 0 && project_num < 10) {
+      window_delegate_->SwitchProject(project_num);
+      return true;
+    }
+  }
+
+  const bool is_p_key = (key_code == 80) || (key_code == 112) ||
+                        (character == 'p') || (character == 'P');
+
+  if (has_command && is_p_key) {
+    waiting_for_project_number_ = true;
+    return true;
   }
   
   return false;

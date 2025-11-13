@@ -1,5 +1,6 @@
 #include "muon_window_delegate.h"
 #include <algorithm>
+#include <cctype>
 #include <vector>
 #include "framed_browser_view.h"
 #include "include/cef_browser.h"

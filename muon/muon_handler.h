@@ -85,6 +85,7 @@ class MuonHandler : public CefClient,
   bool is_closing_ = false;
   std::function<void(CefRefPtr<CefBrowser>, const CefString&)> title_update_callback_;
   MuonWindowDelegate* window_delegate_ = nullptr;
+  bool waiting_for_project_number_ = false;
 
   // Include the default reference counting implementation.
   IMPLEMENT_REFCOUNTING(MuonHandler);
