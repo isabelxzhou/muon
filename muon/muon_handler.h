@@ -10,10 +10,15 @@
 
 #include "include/cef_client.h"
 
+class MuonHandler;
+
+class MuonWindowDelegate;
+
 class MuonHandler : public CefClient,
                       public CefDisplayHandler,
                       public CefLifeSpanHandler,
-                      public CefLoadHandler {
+                      public CefLoadHandler,
+                      public CefKeyboardHandler {
  public:
   explicit MuonHandler();
   ~MuonHandler() override;
@@ -25,6 +30,9 @@ class MuonHandler : public CefClient,
   CefRefPtr<CefDisplayHandler> GetDisplayHandler() override { return this; }
   CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
   CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
+  CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override { return this; }
+  
+  void SetWindowDelegate(MuonWindowDelegate* delegate) { window_delegate_ = delegate; }
 
   // CefDisplayHandler methods:
   void OnTitleChange(CefRefPtr<CefBrowser> browser,
@@ -33,6 +41,13 @@ class MuonHandler : public CefClient,
   void OnAddressChange(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefFrame> frame,
                        const CefString& url) override;
+  
+  // CefKeyboardHandler methods:
+  bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
+                     const CefKeyEvent& event,
+                     CefEventHandle os_event,
+                     bool* is_keyboard_shortcut) override;
+  
   // CefLifeSpanHandler methods:
   void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
   bool DoClose(CefRefPtr<CefBrowser> browser) override;
@@ -69,6 +84,7 @@ class MuonHandler : public CefClient,
 
   bool is_closing_ = false;
   std::function<void(CefRefPtr<CefBrowser>, const CefString&)> title_update_callback_;
+  MuonWindowDelegate* window_delegate_ = nullptr;
 
   // Include the default reference counting implementation.
   IMPLEMENT_REFCOUNTING(MuonHandler);

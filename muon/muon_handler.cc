@@ -10,11 +10,13 @@
 #include "framed_browser_view.h"
 #include "include/base/cef_callback.h"
 #include "include/cef_app.h"
+#include "include/cef_keyboard_handler.h"
 #include "include/cef_parser.h"
 #include "include/views/cef_browser_view.h"
 #include "include/views/cef_window.h"
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
+#include "muon_window_delegate.h"
 
 namespace {
 
@@ -41,6 +43,54 @@ MuonHandler::~MuonHandler() {
 // static
 MuonHandler* MuonHandler::GetInstance() {
   return g_instance;
+}
+
+bool MuonHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
+                                 const CefKeyEvent& event,
+                                 CefEventHandle os_event,
+                                 bool* is_keyboard_shortcut) {
+  CEF_REQUIRE_UI_THREAD();
+  
+  if (window_delegate_ && event.type == KEYEVENT_KEYDOWN) {
+    int key_code = event.windows_key_code;
+    int native_key_code = event.native_key_code;
+    char character = event.character;
+    
+    bool is_p = (key_code == 80) || (native_key_code == 35) || 
+                (character == 'p') || (character == 'P');
+    
+    static bool waiting_for_project_number = false;
+    
+    if (waiting_for_project_number) {
+      bool is_number = false;
+      int project_num = -1;
+      
+      if (key_code >= 48 && key_code <= 57) {
+        project_num = key_code - 48;
+        is_number = true;
+      } else if (native_key_code >= 29 && native_key_code <= 38) {
+        project_num = native_key_code - 29;
+        is_number = true;
+      } else if (character >= '0' && character <= '9') {
+        project_num = character - '0';
+        is_number = true;
+      }
+      
+      if (is_number && project_num >= 0 && project_num < 10) {
+        window_delegate_->SwitchProject(project_num);
+        waiting_for_project_number = false;
+        return true;
+      }
+      waiting_for_project_number = false;
+    }
+    
+    if (is_p) {
+      waiting_for_project_number = true;
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 void MuonHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,

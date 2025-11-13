@@ -24,9 +24,8 @@ public:
 
   bool CanClose(CefRefPtr<CefWindow> window) override;
 
-  // bool OnKeyEvent(CefRefPtr<CefWindow> window,
-  //                 const CefKeyEvent& event) override;
-
+  bool OnKeyEvent(CefRefPtr<CefWindow> window,
+                  const CefKeyEvent& event) override;
 
   cef_runtime_style_t GetWindowRuntimeStyle() override;
 
@@ -40,6 +39,7 @@ public:
   std::vector<CefRefPtr<ProjectPanel>> projects;
   int active_project_idx;
   cef_show_state_t initial_show_state;
+  bool waiting_for_project_number_;
   IMPLEMENT_REFCOUNTING(MuonWindowDelegate);
   DISALLOW_COPY_AND_ASSIGN(MuonWindowDelegate);
 };
