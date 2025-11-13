@@ -5,6 +5,7 @@
 #include "include/internal/cef_ptr.h"
 #include "include/internal/cef_types.h"
 #include "include/views/cef_browser_view.h"
+#include "include/views/cef_panel.h"
 #include "include/views/cef_window.h"
 #include "include/views/cef_window_delegate.h"
 #include "muon_handler.h"
@@ -30,10 +31,12 @@ public:
   cef_runtime_style_t GetWindowRuntimeStyle() override;
 
   CefSize GetPreferredSize(CefRefPtr<CefView> /*view*/) override ;
+  void SwitchProject(int);
 
-private:
+ private:
+  CefRefPtr<CefPanel> content_panel;
   CefRefPtr<MuonHandler> handler;
-  //Crashes on close when project.size() > 1
+  // Crashes on close when project.size() > 1
   std::vector<CefRefPtr<ProjectPanel>> projects;
   int active_project_idx;
   cef_show_state_t initial_show_state;
