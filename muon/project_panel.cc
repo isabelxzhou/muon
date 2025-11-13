@@ -4,7 +4,6 @@
 #include "include/internal/cef_types_wrappers.h"  // for CefColorSetARGB
 #include "muon_handler.h"
 
-
 const std::vector<std::string> sites = {
     "https://flytre.com",  // 0
     "https://isotau.com",  // 1
@@ -28,37 +27,49 @@ const std::vector<std::string> sites = {
     "https://nodejs.org",            // 18
     "https://python.org"             // 19
 };
-
-ProjectPanel::ProjectPanel(int num, CefRefPtr<MuonHandler> handler) {
+ProjectPanel::ProjectPanel(int num, CefRefPtr<MuonHandler> handler)
+    : num_(num), handler_(handler) {
   root_ = CefPanel::CreatePanel(this);
-  top_ = new FramedBrowserView(handler, sites[(num * 2) % 20]);
-  bottom_ = new FramedBrowserView(handler, sites[(num * 2 + 1) % 20]);
-  root_->SetSize(CefSize(1000, 1000));
-  BuildLayout();
 }
 
-CefSize ProjectPanel::GetPreferredSize(CefRefPtr<CefView> /*view*/) {
+CefSize ProjectPanel::GetPreferredSize(CefRefPtr<CefView>) {
   return CefSize(50, 0);
 }
 
+void ProjectPanel::LazyCreate() {
+  if (created_)
+    return;
+
+
+  top_ = new FramedBrowserView(handler_, sites[(num_ * 2) % 20]);
+  bottom_ = new FramedBrowserView(handler_, sites[(num_ * 2 + 1) % 20]);
+
+  BuildLayout();
+  created_ = true;
+}
+
+CefRefPtr<CefPanel> ProjectPanel::ActivateAndGetRoot() {
+  LazyCreate();
+  return root_;
+}
 
 void ProjectPanel::BuildLayout() {
   CefBoxLayoutSettings root_layout;
   root_layout.horizontal = false;
   root_layout.cross_axis_alignment = CEF_AXIS_ALIGNMENT_STRETCH;
+
   auto root_box = root_->SetToBoxLayout(root_layout);
 
   auto top_root = top_->root();
   auto bottom_root = bottom_->root();
+
   top_->SetWindowNumber(1);
   bottom_->SetWindowNumber(2);
+
   root_->AddChildView(top_root);
   root_->AddChildView(bottom_root);
-  root_->GetLayout()->AsBoxLayout()->SetFlexForView(top_root, 1);
-  root_->GetLayout()->AsBoxLayout()->SetFlexForView(bottom_root, 1);
-}
 
-void ProjectPanel::close_browsers() {
-  top_->browser_view()->GetBrowser()->GetHost()->TryCloseBrowser();
-  bottom_->browser_view()->GetBrowser()->GetHost()->TryCloseBrowser();
+  auto box = root_->GetLayout()->AsBoxLayout();
+  box->SetFlexForView(top_root, 1);
+  box->SetFlexForView(bottom_root, 1);
 }

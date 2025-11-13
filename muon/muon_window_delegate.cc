@@ -141,6 +141,8 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   url_layout.between_child_spacing = 8;
   url_panel->SetToBoxLayout(url_layout);
 
+  projects[active_project_idx]->ActivateAndGetRoot();
+
   CefRefPtr<CefTextfield> url_field =
       CefTextfield::CreateTextfield(new URLTextFieldDelegate(
           projects[active_project_idx]->top()->browser_view()));
@@ -161,12 +163,12 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   auto minibuffer =
       CefLabelButton::CreateLabelButton(new NullButtonDelegate(), "Minibuffer");
 
-  content->AddChildView(projects[active_project_idx]->root());
+  content->AddChildView(projects[active_project_idx]->ActivateAndGetRoot());
   content->AddChildView(url_panel);
   content->AddChildView(minibuffer);
 
   content->GetLayout()->AsBoxLayout()->SetFlexForView(
-      projects[active_project_idx]->root(), 1);
+      projects[active_project_idx]->ActivateAndGetRoot(), 1);
   content->GetLayout()->AsBoxLayout()->SetFlexForView(minibuffer, 0);
   content->GetLayout()->AsBoxLayout()->SetFlexForView(url_panel, 0);
   if (initial_show_state != CEF_SHOW_STATE_HIDDEN)
@@ -174,23 +176,10 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
 }
 
 void MuonWindowDelegate::OnWindowDestroyed(CefRefPtr<CefWindow> /*window*/) {
-  for (auto& panel : projects) {
-    if (!panel)
-      continue;
-
-    panel->close_browsers();
-    panel = nullptr;
-  }
-
   projects.clear();
 }
 
 bool MuonWindowDelegate::CanClose(CefRefPtr<CefWindow> /*window*/) {
-  // CefRefPtr<CefBrowser> browser =
-  //   framed_browser_view ? framed_browser_view->browser_view()->GetBrowser() :
-  //   nullptr;
-  // if (browser)
-  //   return browser->GetHost()->TryCloseBrowser();
   return true;
 }
 

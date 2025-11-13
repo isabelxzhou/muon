@@ -177,9 +177,9 @@ void MuonHandler::CloseAllBrowsers(bool force_close) {
     return;
   }
 
-  BrowserList::const_iterator it = browser_list_.begin();
-  for (; it != browser_list_.end(); ++it) {
-    (*it)->GetHost()->CloseBrowser(force_close);
+  for (auto& browser : browser_list_) {
+    if (browser && browser->GetHost())
+      browser->GetHost()->CloseBrowser(force_close);
   }
 }
 
