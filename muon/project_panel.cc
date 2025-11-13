@@ -57,3 +57,8 @@ void ProjectPanel::BuildLayout() {
   root_->GetLayout()->AsBoxLayout()->SetFlexForView(top_root, 1);
   root_->GetLayout()->AsBoxLayout()->SetFlexForView(bottom_root, 1);
 }
+
+void ProjectPanel::close_browsers() {
+  top_->browser_view()->GetBrowser()->GetHost()->TryCloseBrowser();
+  bottom_->browser_view()->GetBrowser()->GetHost()->TryCloseBrowser();
+}

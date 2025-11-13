@@ -18,6 +18,7 @@ class ProjectPanel : public CefPanelDelegate {
   CefSize GetPreferredSize(CefRefPtr<CefView>) override;
 
 
+  void close_browsers();
  private:
   void BuildLayout();
 

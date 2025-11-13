@@ -33,6 +33,7 @@ public:
 
 private:
   CefRefPtr<MuonHandler> handler;
+  //Crashes on close when project.size() > 1
   std::vector<CefRefPtr<ProjectPanel>> projects;
   int active_project_idx;
   cef_show_state_t initial_show_state;

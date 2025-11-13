@@ -174,7 +174,15 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
 }
 
 void MuonWindowDelegate::OnWindowDestroyed(CefRefPtr<CefWindow> /*window*/) {
-  projects = {};
+  for (auto& panel : projects) {
+    if (!panel)
+      continue;
+
+    panel->close_browsers();
+    panel = nullptr;
+  }
+
+  projects.clear();
 }
 
 bool MuonWindowDelegate::CanClose(CefRefPtr<CefWindow> /*window*/) {
