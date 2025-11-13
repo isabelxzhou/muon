@@ -1,4 +1,4 @@
-#include "project_panel.h"
+#include "project_list_panel.h"
 
 #include "include/internal/cef_types_wrappers.h"  // for CefColorSetARGB
 
@@ -23,7 +23,7 @@ inline cef_color_t RainbowColor(int i) {
 
 }  // namespace
 
-ProjectPanel::ProjectPanel() {
+ProjectListPanel::ProjectListPanel() {
   // Root container.
   root_ = CefPanel::CreatePanel(this);
 
@@ -38,15 +38,15 @@ ProjectPanel::ProjectPanel() {
   ApplyColors();
 }
 
-CefSize ProjectPanel::GetPreferredSize(CefRefPtr<CefView> /*view*/) {
+CefSize ProjectListPanel::GetPreferredSize(CefRefPtr<CefView> /*view*/) {
   return CefSize(50, 0);
 }
 
-void ProjectPanel::OnThemeChanged(CefRefPtr<CefView> /*view*/) {
+void ProjectListPanel::OnThemeChanged(CefRefPtr<CefView> /*view*/) {
   ApplyColors();
 }
 
-void ProjectPanel::BuildPanels(CefRefPtr<CefBoxLayout> layout) {
+void ProjectListPanel::BuildPanels(CefRefPtr<CefBoxLayout> layout) {
   panels_.reserve(10);
   for (int i = 0; i < 10; ++i) {
     auto panel = CefPanel::CreatePanel(nullptr);
@@ -56,7 +56,7 @@ void ProjectPanel::BuildPanels(CefRefPtr<CefBoxLayout> layout) {
   }
 }
 
-void ProjectPanel::ApplyColors() {
+void ProjectListPanel::ApplyColors() {
   for (int i = 0; i < static_cast<int>(panels_.size()); ++i) {
     panels_[i]->SetBackgroundColor(RainbowColor(i));
   }

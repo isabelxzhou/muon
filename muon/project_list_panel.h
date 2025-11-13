@@ -8,9 +8,9 @@
 #include "include/views/cef_panel.h"
 #include "include/views/cef_view.h"
 
-class ProjectPanel : public CefPanelDelegate {
+class ProjectListPanel : public CefPanelDelegate {
  public:
-  ProjectPanel();
+  ProjectListPanel();
 
   CefRefPtr<CefPanel> root() const { return root_; }
 
@@ -27,6 +27,6 @@ class ProjectPanel : public CefPanelDelegate {
   CefRefPtr<CefPanel> root_;
   std::vector<CefRefPtr<CefPanel>> panels_;
 
-  IMPLEMENT_REFCOUNTING(ProjectPanel);
-  DISALLOW_COPY_AND_ASSIGN(ProjectPanel);
+  IMPLEMENT_REFCOUNTING(ProjectListPanel);
+  DISALLOW_COPY_AND_ASSIGN(ProjectListPanel);
 };

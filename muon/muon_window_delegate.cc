@@ -15,7 +15,7 @@
 #include "include/views/cef_window.h"
 #include "include/views/cef_window_delegate.h"
 #include "muon_handler.h"
-#include "project_panel.h"
+#include "project_list_panel.h"
 
 class NullButtonDelegate : public CefButtonDelegate {
  public:
@@ -103,7 +103,7 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   win_layout.horizontal = true;
   window->SetToBoxLayout(win_layout);
 
-  auto project_pane = new ProjectPanel();                
+  auto project_pane = new ProjectListPanel();                
   auto pane_root = project_pane->root();
   window->AddChildView(pane_root);
   window->GetLayout()->AsBoxLayout()->SetFlexForView(pane_root, 1); 
