@@ -11,15 +11,20 @@ class ProjectPanel : public CefPanelDelegate {
  public:
   ProjectPanel(int num, CefRefPtr<MuonHandler> handler);
 
-  CefRefPtr<CefPanel> root() const { return root_; }
-  CefRefPtr<FramedBrowserView> top() const {return top_;}
+  CefRefPtr<CefPanel> ActivateAndGetRoot();
 
-  // Fixed 50px width; flexible height.
+  CefRefPtr<FramedBrowserView> top() const { return top_; }
+
   CefSize GetPreferredSize(CefRefPtr<CefView>) override;
 
-
  private:
+  void LazyCreate();
   void BuildLayout();
+
+  int num_;
+  CefRefPtr<MuonHandler> handler_;
+
+  bool created_ = false;  // <-- important
 
   CefRefPtr<CefPanel> root_;
   CefRefPtr<FramedBrowserView> top_;

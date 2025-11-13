@@ -1,6 +1,9 @@
 #include "project_list_panel.h"
 
-#include "include/internal/cef_types_wrappers.h"  // for CefColorSetARGB
+#include "include/internal/cef_types.h"
+#include "include/internal/cef_types_wrappers.h"
+#include "include/views/cef_button.h"
+#include "include/views/cef_label_button.h"
 
 namespace {
 
@@ -23,8 +26,8 @@ inline cef_color_t RainbowColor(int i) {
 
 }  // namespace
 
-ProjectListPanel::ProjectListPanel() {
-  // Root container.
+ProjectListPanel::ProjectListPanel(DelegateFactory delegate_factory)
+    : delegate_factory_(delegate_factory) {
   root_ = CefPanel::CreatePanel(this);
 
   CefBoxLayoutSettings s;
@@ -39,7 +42,7 @@ ProjectListPanel::ProjectListPanel() {
 }
 
 CefSize ProjectListPanel::GetPreferredSize(CefRefPtr<CefView> /*view*/) {
-  return CefSize(50, 0);
+  return CefSize(200, 0);
 }
 
 void ProjectListPanel::OnThemeChanged(CefRefPtr<CefView> /*view*/) {
@@ -50,14 +53,30 @@ void ProjectListPanel::BuildPanels(CefRefPtr<CefBoxLayout> layout) {
   panels_.reserve(10);
   for (int i = 0; i < 10; ++i) {
     auto panel = CefPanel::CreatePanel(nullptr);
+    CefBoxLayoutSettings row_settings;
+    row_settings.horizontal = true;
+    row_settings.main_axis_alignment = CEF_AXIS_ALIGNMENT_CENTER;
+    row_settings.cross_axis_alignment = CEF_AXIS_ALIGNMENT_CENTER;
+    row_settings.minimum_cross_axis_size = 100;
+
+    CefRefPtr<CefBoxLayout> row_layout = panel->SetToBoxLayout(row_settings);
+
+    CefRefPtr<CefLabelButton> button = CefLabelButton::CreateLabelButton(
+        delegate_factory_(i), "P" + std::to_string(i));
+
+    button->SetHorizontalAlignment(CEF_HORIZONTAL_ALIGNMENT_CENTER);
+    button->SetMinimumSize(CefSize(40,30));
+    panel->AddChildView(button);
+    row_layout->SetFlexForView(button, 0);
     panels_.push_back(panel);
     root_->AddChildView(panel);
-    layout->SetFlexForView(panel, 1);  
+    layout->SetFlexForView(panel, 0);
   }
 }
 
 void ProjectListPanel::ApplyColors() {
   for (int i = 0; i < static_cast<int>(panels_.size()); ++i) {
     panels_[i]->SetBackgroundColor(RainbowColor(i));
+    panels_[i]->GetChildViewAt(0)->SetBackgroundColor(RainbowColor(i));
   }
 }
