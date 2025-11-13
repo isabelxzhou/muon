@@ -71,12 +71,21 @@ class URLTextFieldDelegate : public CefTextfieldDelegate {
 
   bool OnKeyEvent(CefRefPtr<CefTextfield> textfield,
                   const CefKeyEvent& event) override {
-    bool is_enter =
-        (event.type == KEYEVENT_KEYDOWN) &&
-        ((event.windows_key_code == 13) || (event.native_key_code == 36) ||
-         (event.native_key_code == 76));
+    if (event.type != KEYEVENT_KEYDOWN &&
+        event.type != KEYEVENT_RAWKEYDOWN) {
+      return false;
+    }
+    
+    // Check for Enter key
+    bool is_enter = (event.windows_key_code == 13) || 
+                    (event.native_key_code == 36) ||
+                    (event.native_key_code == 76);
+    
+    // Check for Spacebar key (32 is spacebar key code)
+    bool is_space = (event.windows_key_code == 32) || 
+                    (event.native_key_code == 49);
 
-    if (is_enter) {
+    if (is_enter || is_space) {
       std::string url = textfield->GetText().ToString();
       if (!url.empty()) {
         if (url.find("://") == std::string::npos) {
