@@ -16,6 +16,7 @@
 #include "include/views/cef_window_delegate.h"
 #include "muon_handler.h"
 #include "project_list_panel.h"
+#include "project_panel.h"
 
 class NullButtonDelegate : public CefButtonDelegate {
  public:
@@ -90,12 +91,10 @@ class URLTextFieldDelegate : public CefTextfieldDelegate {
   IMPLEMENT_REFCOUNTING(URLTextFieldDelegate);
 };
 
-
 MuonWindowDelegate::MuonWindowDelegate(CefRefPtr<MuonHandler> handler,
                                        cef_show_state_t initial_show_state)
     : handler(handler), initial_show_state(initial_show_state) {
-  framed_browser_view = new FramedBrowserView(handler, "https://www.flytre.com");
-  framed_browser_view_2 = new FramedBrowserView(handler, "https://www.isotau.com");
+  project_panel = new ProjectPanel(0, handler);
 }
 void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   // 1) Window: horizontal (sidebar + content)
@@ -103,14 +102,14 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   win_layout.horizontal = true;
   window->SetToBoxLayout(win_layout);
 
-  auto project_pane = new ProjectListPanel();                
+  auto project_pane = new ProjectListPanel();
   auto pane_root = project_pane->root();
   window->AddChildView(pane_root);
-  window->GetLayout()->AsBoxLayout()->SetFlexForView(pane_root, 1); 
+  window->GetLayout()->AsBoxLayout()->SetFlexForView(pane_root, 1);
 
   CefRefPtr<CefPanel> content = CefPanel::CreatePanel(nullptr);
   window->AddChildView(content);
-  window->GetLayout()->AsBoxLayout()->SetFlexForView(content, 30);   
+  window->GetLayout()->AsBoxLayout()->SetFlexForView(content, 30);
 
   CefBoxLayoutSettings content_layout;
   content_layout.horizontal = false;
@@ -122,48 +121,45 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   url_layout.between_child_spacing = 8;
   url_panel->SetToBoxLayout(url_layout);
 
-  CefRefPtr<CefTextfield> url_field =
-      CefTextfield::CreateTextfield(new URLTextFieldDelegate(framed_browser_view->browser_view()));
+  CefRefPtr<CefTextfield> url_field = CefTextfield::CreateTextfield(
+      new URLTextFieldDelegate(project_panel->top()->browser_view()));
   url_field->SetPlaceholderText("Enter URL...");
 
   CefRefPtr<CefLabelButton> navigate_button = CefLabelButton::CreateLabelButton(
-      new NavigateButtonDelegate(url_field, framed_browser_view->browser_view()), "→");
+      new NavigateButtonDelegate(url_field,
+                                 project_panel->top()->browser_view()),
+      "→");
 
   url_panel->AddChildView(url_field);
   url_panel->AddChildView(navigate_button);
 
-  //setting the flex to this to 1 hides the side panel idk why
+  // setting the flex to this to 1 hides the side panel idk why
   url_panel->GetLayout()->AsBoxLayout()->SetFlexForView(url_field, 1);
   url_panel->GetLayout()->AsBoxLayout()->SetFlexForView(navigate_button, 0);
 
   auto minibuffer =
       CefLabelButton::CreateLabelButton(new NullButtonDelegate(), "Minibuffer");
 
-  auto framed_root = framed_browser_view->root();
-  auto framed_root_2 = framed_browser_view_2->root();
-  framed_browser_view_2->SetWindowNumber(2);
 
-  content->AddChildView(framed_root);
-  content->AddChildView(framed_root_2);
+  content->AddChildView(project_panel->root());
   content->AddChildView(url_panel);
   content->AddChildView(minibuffer);
 
-  content->GetLayout()->AsBoxLayout()->SetFlexForView(framed_root,   1);
-  content->GetLayout()->AsBoxLayout()->SetFlexForView(framed_root_2, 1);
+  content->GetLayout()->AsBoxLayout()->SetFlexForView(project_panel->root(), 1);
   content->GetLayout()->AsBoxLayout()->SetFlexForView(minibuffer, 0);
   content->GetLayout()->AsBoxLayout()->SetFlexForView(url_panel, 0);
   if (initial_show_state != CEF_SHOW_STATE_HIDDEN)
     window->Show();
 }
 
-
 void MuonWindowDelegate::OnWindowDestroyed(CefRefPtr<CefWindow> /*window*/) {
-  framed_browser_view = nullptr;
+  project_panel = nullptr;
 }
 
 bool MuonWindowDelegate::CanClose(CefRefPtr<CefWindow> /*window*/) {
   // CefRefPtr<CefBrowser> browser =
-  //   framed_browser_view ? framed_browser_view->browser_view()->GetBrowser() : nullptr;
+  //   framed_browser_view ? framed_browser_view->browser_view()->GetBrowser() :
+  //   nullptr;
   // if (browser)
   //   return browser->GetHost()->TryCloseBrowser();
   return true;

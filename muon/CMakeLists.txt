@@ -15,6 +15,8 @@ set(MUON_SRCS
   muon_app.h
   muon_handler.cc
   muon_handler.h
+  project_panel.h
+  project_panel.cc
   project_list_panel.h
   project_list_panel.cc
   framed_browser_view.h
