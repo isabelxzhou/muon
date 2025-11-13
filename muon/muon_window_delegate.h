@@ -1,3 +1,4 @@
+#include <vector>
 #include "framed_browser_view.h"
 #include "include/base/cef_macros.h"
 #include "include/cef_base.h"
@@ -32,7 +33,8 @@ public:
 
 private:
   CefRefPtr<MuonHandler> handler;
-  CefRefPtr<ProjectPanel> project_panel;
+  std::vector<CefRefPtr<ProjectPanel>> projects;
+  int active_project_idx;
   cef_show_state_t initial_show_state;
   IMPLEMENT_REFCOUNTING(MuonWindowDelegate);
   DISALLOW_COPY_AND_ASSIGN(MuonWindowDelegate);
