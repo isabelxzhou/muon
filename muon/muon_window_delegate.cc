@@ -138,18 +138,23 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
   window->GetLayout()->AsBoxLayout()->SetFlexForView(pane_root, 1);
 
   content_panel = CefPanel::CreatePanel(nullptr);
+  content_panel->SetBackgroundColor(CefColorSetARGB(0xFF, 0xFF, 0xFF, 0xFF));
   window->AddChildView(content_panel);
   window->GetLayout()->AsBoxLayout()->SetFlexForView(content_panel, 20);
 
   CefBoxLayoutSettings content_layout;
   content_layout.horizontal = false;
+  content_layout.between_child_spacing = 0;
   content_panel->SetToBoxLayout(content_layout);
 
   CefRefPtr<CefPanel> url_panel = CefPanel::CreatePanel(nullptr);
   CefBoxLayoutSettings url_layout;
   url_layout.horizontal = true;
-  url_layout.between_child_spacing = 8;
+  url_layout.between_child_spacing = 12;
+  url_layout.cross_axis_alignment = CEF_AXIS_ALIGNMENT_CENTER;
+  url_layout.inside_border_insets = CefInsets(8, 12, 8, 12);
   url_panel->SetToBoxLayout(url_layout);
+  url_panel->SetBackgroundColor(CefColorSetARGB(0xFF, 0xF5, 0xF5, 0xF5));
 
   CefRefPtr<CefTextfield> url_field =
       CefTextfield::CreateTextfield(new URLTextFieldDelegate([this]() {
@@ -164,6 +169,8 @@ void MuonWindowDelegate::OnWindowCreated(CefRefPtr<CefWindow> window) {
             return projects[active_project_idx]->top()->browser_view();
           }),
       "→");
+  navigate_button->SetTextColor(CEF_BUTTON_STATE_NORMAL, CefColorSetARGB(0xFF, 0xFF, 0xFF, 0xFF));
+  navigate_button->SetMinimumSize(CefSize(40, 32));
 
   url_panel->AddChildView(url_field);
   url_panel->AddChildView(navigate_button);

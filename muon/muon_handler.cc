@@ -52,41 +52,37 @@ bool MuonHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
   CEF_REQUIRE_UI_THREAD();
   
   if (window_delegate_ && event.type == KEYEVENT_KEYDOWN) {
-    int key_code = event.windows_key_code;
-    int native_key_code = event.native_key_code;
-    char character = event.character;
+    // Use Control key - more reliable and less likely to conflict
+    bool has_control = (event.modifiers & EVENTFLAG_CONTROL_DOWN) != 0;
     
-    bool is_p = (key_code == 80) || (native_key_code == 35) || 
-                (character == 'p') || (character == 'P');
-    
-    static bool waiting_for_project_number = false;
-    
-    if (waiting_for_project_number) {
-      bool is_number = false;
-      int project_num = -1;
+    if (has_control) {
+      int key_code = event.windows_key_code;
+      int native_key_code = event.native_key_code;
       
+      // Check for number keys 0-9 using key codes (not character, as modifiers change characters)
+      int project_num = -1;
+      bool is_number = false;
+      
+      // Windows key codes for 0-9
       if (key_code >= 48 && key_code <= 57) {
         project_num = key_code - 48;
         is_number = true;
-      } else if (native_key_code >= 29 && native_key_code <= 38) {
+      }
+      // macOS native key codes for 0-9 (top row)
+      else if (native_key_code >= 29 && native_key_code <= 38) {
         project_num = native_key_code - 29;
         is_number = true;
-      } else if (character >= '0' && character <= '9') {
-        project_num = character - '0';
+      }
+      // Also check function keys F1-F10 as backup
+      else if (key_code >= 112 && key_code <= 121) {
+        project_num = key_code - 112;
         is_number = true;
       }
       
       if (is_number && project_num >= 0 && project_num < 10) {
         window_delegate_->SwitchProject(project_num);
-        waiting_for_project_number = false;
         return true;
       }
-      waiting_for_project_number = false;
-    }
-    
-    if (is_p) {
-      waiting_for_project_number = true;
-      return true;
     }
   }
   

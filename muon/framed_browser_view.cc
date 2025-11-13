@@ -101,9 +101,9 @@ void FramedBrowserView::BuildLayout() {
   status_bar_ = CefPanel::CreatePanel(nullptr);
   CefBoxLayoutSettings sb_layout;
   sb_layout.horizontal = true;
-  sb_layout.between_child_spacing = 8;
+  sb_layout.between_child_spacing = 12;
   sb_layout.cross_axis_alignment = CEF_AXIS_ALIGNMENT_CENTER;
-  sb_layout.inside_border_insets = CefInsets(0, 4, 0, 4);
+  sb_layout.inside_border_insets = CefInsets(4, 8, 4, 8);
   auto sb_box = status_bar_->SetToBoxLayout(sb_layout);
 
   window_num_label_ =
@@ -124,15 +124,15 @@ void FramedBrowserView::BuildLayout() {
 void FramedBrowserView::ApplyInitialStyles() {
   // Neutral dark root, subtle status bar background; tweak as desired.
   root_->SetBackgroundColor(CefColorSetARGB(0xFF, 0x20, 0x20, 0x20));
-  status_bar_->SetBackgroundColor(CefColorSetARGB(0xCC, 0x2A, 0x2A, 0x2A));
+  status_bar_->SetBackgroundColor(CefColorSetARGB(0xEE, 0x2D, 0x2D, 0x2D));
 
   window_num_label_->SetTextColor(CEF_BUTTON_STATE_NORMAL,
-                                  CefColorSetARGB(0xFF, 0xDD, 0xDD, 0xDD));
+                                  CefColorSetARGB(0xFF, 0xE8, 0xE8, 0xE8));
   url_label_->SetTextColor(CEF_BUTTON_STATE_NORMAL,
-                           CefColorSetARGB(0xFF, 0xBB, 0xBB, 0xBB));
+                           CefColorSetARGB(0xFF, 0xC8, 0xC8, 0xC8));
 
-  window_num_label_->SetFontList("monospace, 8px");
-  url_label_->SetFontList("monospace, 8px");
+  window_num_label_->SetFontList("monospace, 9px");
+  url_label_->SetFontList("monospace, 9px");
 
   // Sensible defaults.
   SetWindowNumber(1);
