@@ -42,7 +42,7 @@ ProjectListPanel::ProjectListPanel(DelegateFactory delegate_factory)
 }
 
 CefSize ProjectListPanel::GetPreferredSize(CefRefPtr<CefView> /*view*/) {
-  return CefSize(200, 0);
+  return CefSize(90, 0);
 }
 
 void ProjectListPanel::OnThemeChanged(CefRefPtr<CefView> /*view*/) {
@@ -57,7 +57,7 @@ void ProjectListPanel::BuildPanels(CefRefPtr<CefBoxLayout> layout) {
     row_settings.horizontal = true;
     row_settings.main_axis_alignment = CEF_AXIS_ALIGNMENT_CENTER;
     row_settings.cross_axis_alignment = CEF_AXIS_ALIGNMENT_CENTER;
-    row_settings.minimum_cross_axis_size = 100;
+    row_settings.minimum_cross_axis_size = 45;
 
     CefRefPtr<CefBoxLayout> row_layout = panel->SetToBoxLayout(row_settings);
 
@@ -65,7 +65,7 @@ void ProjectListPanel::BuildPanels(CefRefPtr<CefBoxLayout> layout) {
         delegate_factory_(i), "P" + std::to_string(i));
 
     button->SetHorizontalAlignment(CEF_HORIZONTAL_ALIGNMENT_CENTER);
-    button->SetMinimumSize(CefSize(40,30));
+    button->SetMinimumSize(CefSize(24, 30));
     panel->AddChildView(button);
     row_layout->SetFlexForView(button, 0);
     panels_.push_back(panel);
